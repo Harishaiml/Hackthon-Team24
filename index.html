@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⏱️ Timed Quiz App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>⏱️ Timed Quiz</h1>
+        
+        <div id="quizScreen">
+            <div class="progress-section">
+                <div class="question-number" id="questionNumber">Question 1/6</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar" style="width: 16.66%"></div>
+                </div>
+            </div>
+            
+            <div class="timer" id="timer">20</div>
+            <div class="question" id="question"></div>
+            <div class="options" id="options"></div>
+            <div class="score" id="score">Score: 0</div>
+            <div id="message"></div>
+        </div>
+
+        <div id="resultScreen" class="result-screen hidden">
+            <h2>Quiz Complete! 🎉</h2>
+            <div class="final-score" id="finalScore">0/6</div>
+            <button class="restart-btn" onclick="restartQuiz()">🔄 Restart Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        
+        const questions = [
+            {
+                question: "What does DOM stand for?",
+                options: ["Document Object Model", "Data Object Model", "Document Oriented Model", "Digital Object Model"],
+                correct: 0
+            },
+            {
+                question: "Which method adds an element to the end of an stack?",
+                options: ["push()", "pop()", "shift()", "unshift()"],
+                correct: 0
+            },
+            {
+                question: "FullForm for CSS?",
+            options: ["Cascuding Style Sheets", "Cascuding Style Shets", "Computer Style Sheets", "Cascuding Style Shet"],
+        correct: 1
+            },
+            {
+                question: "Which symbol is used for comments in JavaScript?",
+                options: ["//", "/", "/* */", "Both // and /* */"],
+                correct: 3
+            },
+            {
+                question: "What is the output of 2 + '2' in JavaScript?",
+                options: ["4", "22", "Error", "undefined"],
+                correct: 1
+            },
+            {
+        question: "How many Heading tags?",
+        options: ["5","3", "6", "4"],
+        correct: 3
+            }
+            
+        ];
+        
+        
+
+        let currentQuestion = 0;
+        let score = 0;
+        let timerInterval;
+        let timeLeft = 20;
+        let answerSelected = false;
+        let quizActive = true;
+
+
+        const quizScreen = document.getElementById('quizScreen');
+        const resultScreen = document.getElementById('resultScreen');
+        const questionEl = document.getElementById('question');
+        const optionsEl = document.getElementById('options');
+        const timerEl = document.getElementById('timer');
+        const scoreEl = document.getElementById('score');
+        const questionNumberEl = document.getElementById('questionNumber');
+        const progressBarEl = document.getElementById('progressBar');
+        const finalScoreEl = document.getElementById('finalScore');
+        const messageEl = document.getElementById('message');
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (!quizActive) return;
+                
+                timeLeft--;
+                timerEl.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    if (!answerSelected) {
+                        messageEl.innerHTML = '<div class="times-up">⏰ Time\'s Up!</div>';
+                        setTimeout(() => {
+                            moveToNextQuestion();
+                        }, 1000);
+                    }
+                }
+            }, 1000);
+        }
+
+        function loadQuestion() {
+            if (currentQuestion >= questions.length) {
+                endQuiz();
+                return;
+            }
+
+            const q = questions[currentQuestion];
+            questionEl.textContent = q.question;
+            questionNumberEl.textContent = `Question ${currentQuestion + 1}/${questions.length}`;
+            progressBarEl.style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+            
+
+            answerSelected = false;
+            timeLeft = 20;
+            timerEl.textContent = timeLeft;
+            messageEl.innerHTML = '';
+            
+   
+            optionsEl.innerHTML = q.options.map((opt, index) => `
+                <div class="option" onclick="selectOption(${index})">${opt}</div>
+            `).join('');
+            
+    
+            clearInterval(timerInterval);
+            startTimer();
+        }
+
+      
+        function selectOption(index) {
+            if (answerSelected || !quizActive) return;
+            
+            const q = questions[currentQuestion];
+            answerSelected = true;
+     
+            const options = document.querySelectorAll('.option');
+            options[q.correct].classList.add('correct');
+            
+            if (index === q.correct) {
+                score++;
+                scoreEl.textContent = `Score: ${score}`;
+            } else {
+                options[index].classList.add('wrong');
+            }
+            
+            options.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+            
+            setTimeout(() => {
+                moveToNextQuestion();
+            }, 1000);
+        }
+
+     
+        function moveToNextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                endQuiz();
+            }
+        }
+
+    
+        function endQuiz() {
+            quizActive = false;
+            clearInterval(timerInterval);
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            finalScoreEl.textContent = `${score}/${questions.length}`;
+        }
+
+   
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            timeLeft = 20;
+            answerSelected = false;
+            quizActive = true;
+            
+            scoreEl.textContent = 'Score: 0';
+            quizScreen.classList.remove('hidden');
+            resultScreen.classList.add('hidden');
+            
+            loadQuestion();
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
